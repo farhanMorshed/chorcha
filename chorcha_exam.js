@@ -2,7 +2,8 @@
   // ================= CONFIG =================
   const NEG = 0.25;          // negative mark per wrong answer (0 = off)
   const DEFAULT_MIN = 45;    // default minutes
-  const SKIP_SUBJECTS = /(?!)/;   // matches nothing, so no subjects are skipped// ==========================================
+  const SKIP_SUBJECTS = /(?!)/;   // matches nothing, so no subjects are skipped
+  // ==========================================
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const frame = () => new Promise(r => requestAnimationFrame(() => r()));
@@ -162,9 +163,20 @@
     const LABEL = q => ({ correct: 'Correct', wrong: 'Wrong', skipped: 'Skipped', ungraded: 'Answer not detected' })[status(q)];
     const COLOR = { correct: '#4ade80', wrong: '#f87171', skipped: '#fbbf24', ungraded: '#999' };
 
+    // mistakes per subject (worst first)
+    const bySub = {};
+    qs.forEach(q => {
+      const k = q.subject || 'Other', s = bySub[k] || (bySub[k] = { wrong: 0, skip: 0 });
+      if (q.correct === null) return;
+      if (q.pick === null) s.skip++; else if (q.pick !== q.correct) s.wrong++;
+    });
+    const subRows = Object.entries(bySub).sort((a, b) => b[1].wrong - a[1].wrong).map(([k, s]) =>
+      `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #2a2f3a"><span>${k}</span><span><span style="color:#f87171;font-weight:700">${s.wrong} wrong</span>${s.skip ? ` · <span style="color:#fbbf24">${s.skip} skipped</span>` : ''}</span></div>`).join('');
+
     ov.innerHTML = `<div id="xm-bar"><b>Result</b><span><button class="xm-btn alt" id="xm-retake">Retake</button> <button class="xm-btn" id="xm-close">Close</button></span></div>
       <div id="xm-body"><div class="xm-sum"><b>${score.toFixed(2)}</b> / ${qs.length - ungraded}<br>
       ${right} correct · ${wrong} wrong · ${skip} skipped${ungraded ? ` · ${ungraded} ungraded` : ''}<br><small>Negative marking: −${NEG} per wrong answer</small></div>
+      <div class="xm-sum" style="text-align:left;font-size:17px"><div style="text-align:center;margin-bottom:6px">Mistakes by subject</div>${subRows}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;justify-content:center" id="xm-filters"></div><div id="xm-list"></div></div>`;
     const F = [['all', 'All'], ['wrong', 'Wrong'], ['skipped', 'Skipped'], ['ws', 'Wrong + Skipped'], ['correct', 'Correct']];
     const fb = ov.querySelector('#xm-filters');
