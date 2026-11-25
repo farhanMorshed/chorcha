@@ -2,8 +2,7 @@
   // ================= CONFIG =================
   const NEG = 0.25;          // negative mark per wrong answer (0 = off)
   const DEFAULT_MIN = 45;    // default minutes
-  const SKIP_SUBJECTS = /bangla|bengali|english|বাংলা|ইংরেজি/i;   // subjects left out of the exam
-  // ==========================================
+  const SKIP_SUBJECTS = /(?!)/;   // matches nothing, so no subjects are skipped// ==========================================
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const frame = () => new Promise(r => requestAnimationFrame(() => r()));
